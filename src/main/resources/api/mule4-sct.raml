@@ -1,0 +1,81 @@
+#%RAML 1.0
+title: Mule4 String Concatenation Test
+version: 1.0
+baseUri: http://localhost:8081/sct-api
+
+types:
+  TestType:
+    enum: ["String Concatenation", "String Concat Method", "StringBuffer", "StringBuilder", "DTL"]
+    
+  TestDriverResult:
+    type: object
+    properties:
+      testType:
+        type: TestType
+      averageResponseMillis:
+        type: number
+      averageResponseNanos:
+        type: number
+      minResponseMillis:
+        type: number
+      minResponseNanos:
+        type: number
+      numIterations:
+        type: integer
+      numRecords:
+        type: integer
+      numCounted:
+        type: integer
+        
+  TestResult:
+    type: object
+    properties:
+      testType:
+        type: TestType
+      completedInMillis:
+        type: integer
+      completedInNanos:
+        type: integer
+      numRecords:
+        type: integer
+        
+/testDriver:
+  description: Main driver for running the tests. Depends on /test under the covers.
+  get:
+    queryParameters:
+      numIterations:
+        type: integer
+        required: false
+        default: 100
+      numRecords:
+        type: integer
+        required: false
+        default: 10
+      testType:
+        type: TestType
+        required: false
+        default: "String Concatenation"
+    responses:
+      200:
+        body:
+          application/json:
+            type: TestDriverResult
+            
+/test:
+  description: Runs a single test
+  get:
+    queryParameters:
+      numRecords:
+        type: integer
+        required: false
+        default: 10
+      testType:
+        type: TestType
+        required: false
+        default: "String Concatenation"
+    responses:
+      200:
+        body:
+          application/json:
+            type: TestResult
+  
