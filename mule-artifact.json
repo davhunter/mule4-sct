@@ -1,3 +1,22 @@
 {
-  "minMuleVersion": "4.2.2"
+  "configs": ["mule4-sct.xml"],
+  "secureProperties": [],
+  "redeploymentEnabled": true,
+  "name": "mule4-sct",
+  "minMuleVersion": "4.2.2",
+  "requiredProduct": "MULE_EE",
+  "classLoaderModelLoaderDescriptor": {
+  	"id": "mule",
+  	"attributes": {
+  		"exportedResources": [],
+  		"exportedPackages": [
+  			"com.deloitte.sct.datadrivers",
+  			"com.deloitte.sct.transformers"
+		]
+  	}
+  },
+  "bundleDescriptorLoader": {
+  	"id": "mule",
+  	"attributes": {}
+  }
 }

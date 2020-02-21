@@ -1,17 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd ">
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:java="http://www.mulesoft.org/schema/mule/java" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+http://www.mulesoft.org/schema/mule/java http://www.mulesoft.org/schema/mule/java/current/mule-java.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
     <http:listener-config name="mule4-sct-httpListenerConfig">
         <http:listener-connection host="0.0.0.0" port="8081" />
     </http:listener-config>
     <apikit:config name="mule4-sct-config" api="mule4-sct.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
-    <flow name="mule4-sct-main">
-        <http:listener config-ref="mule4-sct-httpListenerConfig" path="/api/*">
+    <java:config name="Java_Config" doc:name="Java Config" doc:id="c568d0f4-f4a2-4800-9596-b699c6db953c" />
+	<flow name="mule4-sct-main">
+        <http:listener config-ref="mule4-sct-httpListenerConfig" path="/sct-api/*">
             <http:response statusCode="#[vars.httpStatus default 200]">
-                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
             </http:response>
             <http:error-response statusCode="#[vars.httpStatus default 500]">
-                <http:body>#[payload]</http:body>
-                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
             </http:error-response>
         </http:listener>
         <apikit:router config-ref="mule4-sct-config" />
@@ -124,9 +127,102 @@ output application/json
         </error-handler>
     </flow>
     <flow name="get:\test:mule4-sct-config">
-        <logger level="INFO" message="get:\test:mule4-sct-config" />
+		<set-variable value="#[attributes.queryParams.testType]" doc:name="Set Test Type" doc:id="bfa8e97e-0a4a-4e18-b214-38ff3e4aef6a" variableName="testType"/>
+		<set-variable value="#[attributes.queryParams.numRecords]" doc:name="Set Num Records" doc:id="475c23d5-f09e-48d4-bc29-d21e46115218" variableName="numRecords"/>
+		<java:invoke-static doc:name="Populate Input Data" doc:id="f2b35b46-3821-4617-896e-b823096e2654" 
+		class="com.deloitte.sct.datadrivers.DataGenerator"
+		method="generateMovies(int)" outputMimeType="application/java">
+			<java:args><![CDATA[#[{
+  numRecords: attributes.queryParams.numRecords as Number
+}]]]></java:args>
+		</java:invoke-static>
+		<set-variable value="#[now().nanoseconds]" doc:name="Set Start Time" doc:id="b2fe488e-f5c9-46df-9ace-5da0c04076d6" variableName="startTime"/>
+		<choice doc:name="Type of Test?" doc:id="1210e7be-eb4a-4e96-bae5-b1637028ee1a" >
+			<when expression='#[vars.testType == "DTL"]'>
+				<ee:transform doc:name="DataWeave Transformation" doc:id="299e0f0b-464d-485b-ba25-b9be0832cc6d" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+---
+movies: movie: payload map ((item, index) -> {
+		name: item.name,
+		duration: item.duration,
+		rating: item.rating
+})]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<when expression='#[vars.testType == "StringBuilder"]'>
+				<java:invoke-static doc:name="String Builder" 
+				doc:id="af34bbd8-7b89-40c0-a158-02e8c634e9ae" 
+				class="com.deloitte.sct.transformers.JavaTransformers" 
+				method="stringBuilderTransformer(java.util.List)" 
+				outputMimeType="application/xml">
+					<java:args ><![CDATA[#[{
+	movies: payload
+}]]]></java:args>
+				</java:invoke-static>
+			</when>
+			<when expression='#[vars.testType == "StringBuffer"]'>
+				<java:invoke-static doc:name="String Buffer" 
+				doc:id="d9ae4f40-4dac-43ec-abb5-94d810f44802" 
+				class="com.deloitte.sct.transformers.JavaTransformers" 
+				method="stringBufferTransformer(java.util.List)" 
+				outputMimeType="application/xml">
+					<java:args ><![CDATA[#[{
+	movies: payload
+}]]]></java:args>
+				</java:invoke-static>
+			</when>
+			<when expression='#[vars.testType == "ConcatMethod"]'>
+				<java:invoke-static doc:name="Concat Method" 
+				doc:id="80757a1b-5e76-40e5-8e18-efaa7c97298b" 
+				class="com.deloitte.sct.transformers.JavaTransformers" 
+				method="concatMethodTransformer(java.util.List)" 
+				outputMimeType="application/xml">
+					<java:args ><![CDATA[#[{
+	movies: payload
+}]]]></java:args>
+				</java:invoke-static>
+			</when>
+			<otherwise >
+				<java:invoke-static doc:name="Concatenation" 
+				doc:id="cd851311-c3dc-4b5c-bc73-cc180a9041b7" 
+				class="com.deloitte.sct.transformers.JavaTransformers" 
+				method="stringConcatenationTransformer(java.util.List)" 
+				outputMimeType="application/xml">
+					<java:args ><![CDATA[#[{
+	movies: payload
+}]]]></java:args>
+				</java:invoke-static>
+			</otherwise>
+		</choice>
+		<set-variable value="#[now().nanoseconds]" doc:name="Set End Time" doc:id="c3db5be1-e1e3-4805-9005-2ce146237f4a" variableName="endTime"/>
+		<ee:transform doc:name="Generate Output" doc:id="aa9a84be-fcc3-4c1a-bccc-c4f4cdeb66d8" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	testType: vars.testType,
+	completedInMillis: (vars.endTime - vars.startTime) / 1000000,
+	completedInNanos: vars.endTime - vars.startTime,
+	numRecords: vars.numRecords
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
     </flow>
     <flow name="get:\testDriver:mule4-sct-config">
-        <logger level="INFO" message="get:\testDriver:mule4-sct-config" />
+		<set-variable value="#[attributes.queryParams.testType]" doc:name="Set Test Type" doc:id="38f9b6bd-e674-4ec3-80dd-cb22c7c25eba" variableName="testType"/>
+		<set-variable value="#[attributes.queryParams.numIterations]" doc:name="Set Num Iterations" doc:id="26918dd4-ef40-4271-9089-0925aa235a59" variableName="numIterations"/>
+		<set-variable value="#[attributes.queryParams.numRecords]" doc:name="Set Num Records" doc:id="a4b9dd0f-5df2-4317-8105-b615fc9954e6" variableName="numRecords"/>
+		<java:invoke-static doc:name="Generate Test Data Driver Objects" doc:id="077395c9-7dca-4ece-a41b-8112f06b9fc0" class="com.deloitte.sct.datadrivers.DataGenerator" method="generateTestRuns(int,int,java.lang.String)" outputMimeType="application/java">
+			<java:args ><![CDATA[#[{
+	numIterations: vars.numIterations,
+	numRecords: vars.numRecords,
+	testType: vars.testType
+}]]]></java:args>
+		</java:invoke-static>
+		<logger level="INFO" doc:name="Logger" doc:id="5c7bbec8-2ec0-48b8-93c0-a45e06c99f9a" message="#[payload]"/>
     </flow>
 </mule>
