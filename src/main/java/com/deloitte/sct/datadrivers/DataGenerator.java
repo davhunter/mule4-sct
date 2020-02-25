@@ -71,4 +71,14 @@ public class DataGenerator {
 
 		return tests;
 	}
+
+	/**
+	 * Returns the server's time (nanoseconds), in a more precise way than MuleSoft
+	 * does with <code>now().nanoseconds</code>
+	 * 
+	 * @return Current server time in nanoseconds
+	 */
+	static public long getNanoTime() {
+		return System.nanoTime();
+	}
 }

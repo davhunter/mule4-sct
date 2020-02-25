@@ -3,10 +3,14 @@
 http://www.mulesoft.org/schema/mule/java http://www.mulesoft.org/schema/mule/java/current/mule-java.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
     <http:listener-config name="mule4-sct-httpListenerConfig">
-        <http:listener-connection host="0.0.0.0" port="8081" />
+        <http:listener-connection host="0.0.0.0" port="${http.port}" />
     </http:listener-config>
     <apikit:config name="mule4-sct-config" api="mule4-sct.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
     <java:config name="Java_Config" doc:name="Java Config" doc:id="c568d0f4-f4a2-4800-9596-b699c6db953c" />
+	<configuration-properties doc:name="Configuration properties" doc:id="43cfba64-abfa-4497-930c-1d0df0759455" file="application-properties.yaml" />
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="f11426ad-da59-4a60-a464-fc23f232c1ca" basePath="/sct-api/" >
+		<http:request-connection host="localhost" port="${http.port}" />
+	</http:request-config>
 	<flow name="mule4-sct-main">
         <http:listener config-ref="mule4-sct-httpListenerConfig" path="/sct-api/*">
             <http:response statusCode="#[vars.httpStatus default 200]">
@@ -127,28 +131,58 @@ output application/json
         </error-handler>
     </flow>
     <flow name="get:\test:mule4-sct-config">
-		<set-variable value="#[attributes.queryParams.testType]" doc:name="Set Test Type" doc:id="bfa8e97e-0a4a-4e18-b214-38ff3e4aef6a" variableName="testType"/>
-		<set-variable value="#[attributes.queryParams.numRecords]" doc:name="Set Num Records" doc:id="475c23d5-f09e-48d4-bc29-d21e46115218" variableName="numRecords"/>
+		<set-variable value="#[%dw 2.0
+output text/plain
+---
+if (vars.testType?)
+	vars.testType
+else
+	attributes.queryParams.testType]" doc:name="Set Test Type" doc:id="bfa8e97e-0a4a-4e18-b214-38ff3e4aef6a" variableName="testType"/>
+		<set-variable value="#[%dw 2.0
+---
+if (vars.numRecords?)
+	vars.numRecords
+else
+	attributes.queryParams.numRecords]" doc:name="Set Num Records" doc:id="475c23d5-f09e-48d4-bc29-d21e46115218" variableName="numRecords"/>
 		<java:invoke-static doc:name="Populate Input Data" doc:id="f2b35b46-3821-4617-896e-b823096e2654" 
 		class="com.deloitte.sct.datadrivers.DataGenerator"
 		method="generateMovies(int)" outputMimeType="application/java">
 			<java:args><![CDATA[#[{
-  numRecords: attributes.queryParams.numRecords as Number
+  numRecords: vars.numRecords as Number
 }]]]></java:args>
 		</java:invoke-static>
-		<set-variable value="#[now().nanoseconds]" doc:name="Set Start Time" doc:id="b2fe488e-f5c9-46df-9ace-5da0c04076d6" variableName="startTime"/>
 		<choice doc:name="Type of Test?" doc:id="1210e7be-eb4a-4e96-bae5-b1637028ee1a" >
 			<when expression='#[vars.testType == "DTL"]'>
+				<set-variable value="#[%dw 2.0
+import java!com::deloitte::sct::datadrivers::DataGenerator
+---
+DataGenerator::getNanoTime()]" doc:name="Set Start Time" doc:id="b2fe488e-f5c9-46df-9ace-5da0c04076d6" variableName="startTime" />
 				<ee:transform doc:name="DataWeave Transformation" doc:id="299e0f0b-464d-485b-ba25-b9be0832cc6d" >
 					<ee:message >
 						<ee:set-payload ><![CDATA[%dw 2.0
 output application/xml
 ---
-movies: movie: payload map ((item, index) -> {
-		name: item.name,
-		duration: item.duration,
-		rating: item.rating
+movies: movie: payload map (() -> {
+		name: $.name,
+		duration: $.duration,
+		rating: $.rating
 })]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<set-variable value="#[%dw 2.0
+import java!com::deloitte::sct::datadrivers::DataGenerator
+---
+DataGenerator::getNanoTime()]" doc:name="Set End Time" doc:id="c3db5be1-e1e3-4805-9005-2ce146237f4a" variableName="endTime" />
+				<ee:transform doc:name="Transform Message" doc:id="18d0085b-9736-430e-a222-8a8628817fb2" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	timeInMillis: (vars.endTime - vars.startTime) / 1000000,
+	timeInNanos: vars.endTime - vars.startTime,
+	xmlResult: payload.^raw
+} as Object {class: "com.deloitte.sct.datamodel.TransformationResult"}]]></ee:set-payload>
 					</ee:message>
 				</ee:transform>
 			</when>
@@ -157,7 +191,7 @@ movies: movie: payload map ((item, index) -> {
 				doc:id="af34bbd8-7b89-40c0-a158-02e8c634e9ae" 
 				class="com.deloitte.sct.transformers.JavaTransformers" 
 				method="stringBuilderTransformer(java.util.List)" 
-				outputMimeType="application/xml">
+				outputMimeType="application/java">
 					<java:args ><![CDATA[#[{
 	movies: payload
 }]]]></java:args>
@@ -168,7 +202,7 @@ movies: movie: payload map ((item, index) -> {
 				doc:id="d9ae4f40-4dac-43ec-abb5-94d810f44802" 
 				class="com.deloitte.sct.transformers.JavaTransformers" 
 				method="stringBufferTransformer(java.util.List)" 
-				outputMimeType="application/xml">
+				outputMimeType="application/java">
 					<java:args ><![CDATA[#[{
 	movies: payload
 }]]]></java:args>
@@ -179,7 +213,7 @@ movies: movie: payload map ((item, index) -> {
 				doc:id="80757a1b-5e76-40e5-8e18-efaa7c97298b" 
 				class="com.deloitte.sct.transformers.JavaTransformers" 
 				method="concatMethodTransformer(java.util.List)" 
-				outputMimeType="application/xml">
+				outputMimeType="application/java">
 					<java:args ><![CDATA[#[{
 	movies: payload
 }]]]></java:args>
@@ -190,14 +224,13 @@ movies: movie: payload map ((item, index) -> {
 				doc:id="cd851311-c3dc-4b5c-bc73-cc180a9041b7" 
 				class="com.deloitte.sct.transformers.JavaTransformers" 
 				method="stringConcatenationTransformer(java.util.List)" 
-				outputMimeType="application/xml">
+				outputMimeType="application/java">
 					<java:args ><![CDATA[#[{
 	movies: payload
 }]]]></java:args>
 				</java:invoke-static>
 			</otherwise>
 		</choice>
-		<set-variable value="#[now().nanoseconds]" doc:name="Set End Time" doc:id="c3db5be1-e1e3-4805-9005-2ce146237f4a" variableName="endTime"/>
 		<ee:transform doc:name="Generate Output" doc:id="aa9a84be-fcc3-4c1a-bccc-c4f4cdeb66d8" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
@@ -205,8 +238,8 @@ output application/json
 ---
 {
 	testType: vars.testType,
-	completedInMillis: (vars.endTime - vars.startTime) / 1000000,
-	completedInNanos: vars.endTime - vars.startTime,
+	completedInMillis: payload.timeInMillis,
+	completedInNanos: payload.timeInNanos,
 	numRecords: vars.numRecords
 }]]></ee:set-payload>
 			</ee:message>
@@ -216,6 +249,8 @@ output application/json
 		<set-variable value="#[attributes.queryParams.testType]" doc:name="Set Test Type" doc:id="38f9b6bd-e674-4ec3-80dd-cb22c7c25eba" variableName="testType"/>
 		<set-variable value="#[attributes.queryParams.numIterations]" doc:name="Set Num Iterations" doc:id="26918dd4-ef40-4271-9089-0925aa235a59" variableName="numIterations"/>
 		<set-variable value="#[attributes.queryParams.numRecords]" doc:name="Set Num Records" doc:id="a4b9dd0f-5df2-4317-8105-b615fc9954e6" variableName="numRecords"/>
+		<set-variable value="#[[]]" doc:name="Initialize Milli Result Array" doc:id="6d2f7ed5-3fa3-4812-aba9-2ac56c572a3b" variableName="millisResultSet" mimeType="application/java"/>
+		<set-variable value="#[[]]" doc:name="Initialize Nano Result Array" doc:id="fb798743-334b-490a-b5c6-2c49f264b648" variableName="nanosResultSet" mimeType="application/java"/>
 		<java:invoke-static doc:name="Generate Test Data Driver Objects" doc:id="077395c9-7dca-4ece-a41b-8112f06b9fc0" class="com.deloitte.sct.datadrivers.DataGenerator" method="generateTestRuns(int,int,java.lang.String)" outputMimeType="application/java">
 			<java:args ><![CDATA[#[{
 	numIterations: vars.numIterations,
@@ -223,6 +258,36 @@ output application/json
 	testType: vars.testType
 }]]]></java:args>
 		</java:invoke-static>
-		<logger level="INFO" doc:name="Logger" doc:id="5c7bbec8-2ec0-48b8-93c0-a45e06c99f9a" message="#[payload]"/>
+		<foreach doc:name="For Each" doc:id="a88bc0f9-8730-4209-9faa-38ea7a190a8c" collection="#[payload]">
+			<flow-ref doc:name="Flow Reference" doc:id="5e2b7acd-5371-4cfd-a8c8-f8b5d109b055" name="get:\test:mule4-sct-config" target="requestResult"/>
+			<set-variable value="#[%dw 2.0
+output application/java
+---
+vars.millisResultSet &lt;&lt; vars.requestResult.completedInMillis]" doc:name="Update Milli Array" doc:id="bf00dfc1-45d0-4f02-889d-b3fcb19eaecc" variableName="millisResultSet" mimeType="application/java"/>
+			<set-variable value="#[%dw 2.0
+output application/java
+---
+if (vars.requestResult.completedInNanos &gt; 0)
+	vars.nanosResultSet &lt;&lt; vars.requestResult.completedInNanos
+else
+	vars.nanosResultSet]" doc:name="Update Nano Array" doc:id="e028593a-61a4-4626-84de-29d4e87062a7" variableName="nanosResultSet" mimeType="application/java"/>
+		</foreach>
+		<ee:transform doc:name="Generate Response" doc:id="6a975b28-5232-4a5c-beba-7f33d5090dba" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+      testType: vars.testType,
+      averageResponseMillis: avg(vars.millisResultSet),
+      averageResponseNanos: avg(vars.nanosResultSet),
+      minResponseMillis: min(vars.millisResultSet),
+      minResponseNanos: min(vars.nanosResultSet),
+      numIterations: vars.numIterations,
+      numRecords: vars.numRecords,
+      numCounted: sizeOf(vars.nanosResultSet)
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
     </flow>
 </mule>

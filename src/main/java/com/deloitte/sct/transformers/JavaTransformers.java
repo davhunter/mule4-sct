@@ -3,6 +3,7 @@ package com.deloitte.sct.transformers;
 import java.util.List;
 
 import com.deloitte.sct.datamodel.Movie;
+import com.deloitte.sct.datamodel.TransformationResult;
 
 /**
  * Contains (static) methods for testing a variety of different modes of
@@ -36,9 +37,13 @@ public class JavaTransformers {
 	 * Uses straightforward string concatenation to build the XML
 	 * 
 	 * @param movies List of movies to be transformed
-	 * @return Java String containing XML
+	 * @return A {@link com.deloitte.sct.datamodel.TransformationResult
+	 *         TransformationResult} object the XML, and time taken for the
+	 *         transformation
 	 */
-	static public String stringConcatenationTransformer(List<Movie> movies) {
+	static public TransformationResult stringConcatenationTransformer(List<Movie> movies) {
+		long startTime = System.nanoTime();
+
 		String xmlString = ROOT_OPEN;
 
 		for (Movie m : movies) {
@@ -51,38 +56,60 @@ public class JavaTransformers {
 
 		xmlString += ROOT_CLOSE;
 
-		return xmlString;
+		long endTime = System.nanoTime();
+
+		TransformationResult result = new TransformationResult();
+		result.setXmlResult(xmlString);
+		result.setTimeInNanos(endTime - startTime);
+		result.setTimeInMillis((endTime - startTime) / 1000000);
+
+		return result;
 	}
 
 	/**
 	 * Uses the String.concat() method to build the string
 	 * 
 	 * @param movies List of movies to be transformed
-	 * @return Java String containing XML
+	 * @return A {@link com.deloitte.sct.datamodel.TransformationResult
+	 *         TransformationResult} object the XML, and time taken for the
+	 *         transformation
 	 */
-	static public String concatMethodTransformer(List<Movie> movies) {
+	static public TransformationResult concatMethodTransformer(List<Movie> movies) {
+		long startTime = System.nanoTime();
+
 		String xmlString = ROOT_OPEN;
 
 		for (Movie m : movies) {
 			xmlString = xmlString.concat(MOVIE_OPEN);
-			xmlString = xmlString.concat(NAME_OPEN).concat(m.getName()).concat(NAME_CLOSE);
-			xmlString = xmlString.concat(DURATION_OPEN).concat(m.getDuration()).concat(DURATION_CLOSE);
-			xmlString = xmlString.concat(RATING_OPEN).concat(m.getRating()).concat(RATING_CLOSE);
+			xmlString = xmlString.concat(NAME_OPEN + m.getName() + NAME_CLOSE);
+			xmlString = xmlString.concat(DURATION_OPEN + m.getDuration() + DURATION_CLOSE);
+			xmlString = xmlString.concat(RATING_OPEN + m.getRating() + RATING_CLOSE);
 			xmlString = xmlString.concat(MOVIE_CLOSE);
 		}
 
 		xmlString = xmlString.concat(ROOT_CLOSE);
 
-		return xmlString;
+		long endTime = System.nanoTime();
+
+		TransformationResult result = new TransformationResult();
+		result.setXmlResult(xmlString);
+		result.setTimeInNanos(endTime - startTime);
+		result.setTimeInMillis((endTime - startTime) / 1000000);
+
+		return result;
 	}
 
 	/**
 	 * Uses the Java StringBuilder to build the string
 	 * 
 	 * @param movies List of movies to be transformed
-	 * @return Java String containing XML
+	 * @return A {@link com.deloitte.sct.datamodel.TransformationResult
+	 *         TransformationResult} object the XML, and time taken for the
+	 *         transformation
 	 */
-	static public String stringBuilderTransformer(List<Movie> movies) {
+	static public TransformationResult stringBuilderTransformer(List<Movie> movies) {
+		long startTime = System.nanoTime();
+
 		StringBuilder xmlString = new StringBuilder();
 
 		xmlString.append(ROOT_OPEN);
@@ -103,16 +130,27 @@ public class JavaTransformers {
 
 		xmlString.append(ROOT_CLOSE);
 
-		return xmlString.toString();
+		long endTime = System.nanoTime();
+
+		TransformationResult result = new TransformationResult();
+		result.setXmlResult(xmlString.toString());
+		result.setTimeInNanos(endTime - startTime);
+		result.setTimeInMillis((endTime - startTime) / 1000000);
+
+		return result;
 	}
 
 	/**
 	 * Uses the Java StringBuffer to build the string
 	 * 
 	 * @param movies List of movies to be transformed
-	 * @return Java String containing XML
+	 * @return A {@link com.deloitte.sct.datamodel.TransformationResult
+	 *         TransformationResult} object the XML, and time taken for the
+	 *         transformation
 	 */
-	static public String stringBufferTransformer(List<Movie> movies) {
+	static public TransformationResult stringBufferTransformer(List<Movie> movies) {
+		long startTime = System.nanoTime();
+
 		StringBuffer xmlString = new StringBuffer();
 
 		xmlString.append(ROOT_OPEN);
@@ -133,6 +171,13 @@ public class JavaTransformers {
 
 		xmlString.append(ROOT_CLOSE);
 
-		return xmlString.toString();
+		long endTime = System.nanoTime();
+
+		TransformationResult result = new TransformationResult();
+		result.setXmlResult(xmlString.toString());
+		result.setTimeInNanos(endTime - startTime);
+		result.setTimeInMillis((endTime - startTime) / 1000000);
+
+		return result;
 	}
 }
