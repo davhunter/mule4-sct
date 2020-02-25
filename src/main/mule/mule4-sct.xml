@@ -181,7 +181,7 @@ output application/java
 {
 	timeInMillis: (vars.endTime - vars.startTime) / 1000000,
 	timeInNanos: vars.endTime - vars.startTime,
-	xmlResult: payload.^raw
+	xmlResult: "payload would go here"
 } as Object {class: "com.deloitte.sct.datamodel.TransformationResult"}]]></ee:set-payload>
 					</ee:message>
 				</ee:transform>
