@@ -186,6 +186,48 @@ output application/java
 					</ee:message>
 				</ee:transform>
 			</when>
+			<when expression='#[vars.testType == "DTL2"]'>
+				<ee:transform doc:name="refactor payload" doc:id="f3df0562-bf09-4083-bddf-e36e62a5e8da">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+movies: movie: payload map (() -> {
+		name: $.name,
+		duration: $.duration,
+		rating: $.rating
+})]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<set-variable value="#[%dw 2.0
+import java!com::deloitte::sct::datadrivers::DataGenerator
+---
+DataGenerator::getNanoTime()]" doc:name="Set Start Time" doc:id="70746bc7-1f5b-4bd6-a57c-a21061fca461" variableName="startTime" />
+				<ee:transform doc:name="DataWeave Transformation" doc:id="e7abaccd-a901-40a6-ae3c-5b5af574fe48" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<set-variable value="#[%dw 2.0
+import java!com::deloitte::sct::datadrivers::DataGenerator
+---
+DataGenerator::getNanoTime()]" doc:name="Set End Time" doc:id="240cf843-039a-467f-ae68-f7ba1815eb46" variableName="endTime" />
+				<ee:transform doc:name="Transform Message" doc:id="7842102a-3a86-4a11-904e-69f8603241f3" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	timeInMillis: (vars.endTime - vars.startTime) / 1000000,
+	timeInNanos: vars.endTime - vars.startTime,
+	xmlResult: "payload would go here"
+} as Object {class: "com.deloitte.sct.datamodel.TransformationResult"}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
 			<when expression='#[vars.testType == "StringBuilder"]'>
 				<java:invoke-static doc:name="String Builder" 
 				doc:id="af34bbd8-7b89-40c0-a158-02e8c634e9ae" 
