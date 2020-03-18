@@ -1,6 +1,8 @@
 package com.deloitte.sct.datamodel;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Simple POJO class for working with movie data
@@ -13,15 +15,17 @@ public class Movie implements Serializable {
 	private String name;
 	private String duration;
 	private String rating;
+	private List<ShowTime> showtimes = new ArrayList<ShowTime>();
 
 	public Movie() {
 
 	}
 
-	public Movie(final String name, final String duration, final String rating) {
+	public Movie(final String name, final String duration, final String rating, final List<ShowTime> showtimes) {
 		this.name = name;
 		this.duration = duration;
 		this.rating = rating;
+		this.showtimes = showtimes;
 	}
 
 	public String getName() {
@@ -46,5 +50,13 @@ public class Movie implements Serializable {
 
 	public void setRating(final String rating) {
 		this.rating = rating;
+	}
+
+	public List<ShowTime> getShowtimes() {
+		return showtimes;
+	}
+
+	public void setShowtimes(List<ShowTime> showtimes) {
+		this.showtimes = showtimes;
 	}
 }

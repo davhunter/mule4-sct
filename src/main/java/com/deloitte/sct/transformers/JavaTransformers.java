@@ -3,6 +3,7 @@ package com.deloitte.sct.transformers;
 import java.util.List;
 
 import com.deloitte.sct.datamodel.Movie;
+import com.deloitte.sct.datamodel.ShowTime;
 import com.deloitte.sct.datamodel.TransformationResult;
 
 /**
@@ -22,6 +23,14 @@ import com.deloitte.sct.datamodel.TransformationResult;
  */
 public class JavaTransformers {
 
+	private static final String SHOWTIME_CLOSE = "</showtime>";
+	private static final String VIP_AVAILABLE_CLOSE = "</vipAvailable>";
+	private static final String VIP_AVAILABLE_OPEN = "<vipAvailable>";
+	private static final String THEATRE_NAME_CLOSE = "</theatreName>";
+	private static final String THEATRE_NAME_OPEN = "<theatreName>";
+	private static final String START_TIME_CLOSE = "</startTime>";
+	private static final String START_TIME_OPEN = "<startTime>";
+	private static final String SHOWTIME_OPEN = "<showtime>";
 	private static final String RATING_CLOSE = "</rating>";
 	private static final String RATING_OPEN = "<rating>";
 	private static final String DURATION_CLOSE = "</duration>";
@@ -32,6 +41,9 @@ public class JavaTransformers {
 	private static final String MOVIE_OPEN = "<movie>";
 	private static final String ROOT_CLOSE = "</movies>";
 	private static final String ROOT_OPEN = "<movies>";
+	
+	private static final String SHOWTIMES_OPEN = "<showtimes>";
+	private static final String SHOWTIMES_CLOSE = "</showtimes>";
 
 	/**
 	 * Uses straightforward string concatenation to build the XML
@@ -51,6 +63,15 @@ public class JavaTransformers {
 			xmlString += NAME_OPEN + m.getName() + NAME_CLOSE;
 			xmlString += DURATION_OPEN + m.getDuration() + DURATION_CLOSE;
 			xmlString += RATING_OPEN + m.getRating() + RATING_CLOSE;
+			xmlString += SHOWTIMES_OPEN;
+			for(ShowTime st : m.getShowtimes()) {
+				xmlString += SHOWTIME_OPEN;
+				xmlString += START_TIME_OPEN + st.getStartTime() + START_TIME_CLOSE;
+				xmlString += THEATRE_NAME_OPEN + st.getTheatreName() + THEATRE_NAME_CLOSE;
+				xmlString += VIP_AVAILABLE_OPEN + st.isVipAvailable() + VIP_AVAILABLE_CLOSE;
+				xmlString += SHOWTIME_CLOSE;
+			}
+			xmlString += SHOWTIMES_CLOSE;
 			xmlString += MOVIE_CLOSE;
 		}
 
@@ -84,6 +105,15 @@ public class JavaTransformers {
 			xmlString = xmlString.concat(NAME_OPEN + m.getName() + NAME_CLOSE);
 			xmlString = xmlString.concat(DURATION_OPEN + m.getDuration() + DURATION_CLOSE);
 			xmlString = xmlString.concat(RATING_OPEN + m.getRating() + RATING_CLOSE);
+			xmlString = xmlString.concat(SHOWTIMES_OPEN);
+			for(ShowTime st : m.getShowtimes()) {
+				xmlString = xmlString.concat(SHOWTIME_OPEN);
+				xmlString = xmlString.concat(START_TIME_OPEN + st.getStartTime() + START_TIME_CLOSE);
+				xmlString = xmlString.concat(THEATRE_NAME_OPEN + st.getTheatreName() + THEATRE_NAME_CLOSE);
+				xmlString = xmlString.concat(VIP_AVAILABLE_OPEN + st.isVipAvailable() + VIP_AVAILABLE_CLOSE);
+				xmlString = xmlString.concat(SHOWTIME_CLOSE);
+			}
+			xmlString = xmlString.concat(SHOWTIMES_CLOSE);
 			xmlString = xmlString.concat(MOVIE_CLOSE);
 		}
 
@@ -125,6 +155,21 @@ public class JavaTransformers {
 			xmlString.append(RATING_OPEN);
 			xmlString.append(m.getRating());
 			xmlString.append(RATING_CLOSE);
+			xmlString.append(SHOWTIMES_OPEN);
+			for(ShowTime st : m.getShowtimes()) {
+				xmlString.append(SHOWTIME_OPEN);
+				xmlString.append(START_TIME_OPEN);
+				xmlString.append(st.getStartTime());
+				xmlString.append(START_TIME_CLOSE);
+				xmlString.append(THEATRE_NAME_OPEN);
+				xmlString.append(st.getTheatreName());
+				xmlString.append(THEATRE_NAME_CLOSE);
+				xmlString.append(VIP_AVAILABLE_OPEN);
+				xmlString.append(st.isVipAvailable());
+				xmlString.append(VIP_AVAILABLE_CLOSE);
+				xmlString.append(SHOWTIME_CLOSE);
+			}
+			xmlString.append(SHOWTIMES_CLOSE);
 			xmlString.append(MOVIE_CLOSE);
 		}
 
@@ -166,6 +211,21 @@ public class JavaTransformers {
 			xmlString.append(RATING_OPEN);
 			xmlString.append(m.getRating());
 			xmlString.append(RATING_CLOSE);
+			xmlString.append(SHOWTIMES_OPEN);
+			for(ShowTime st : m.getShowtimes()) {
+				xmlString.append(SHOWTIME_OPEN);
+				xmlString.append(START_TIME_OPEN);
+				xmlString.append(st.getStartTime());
+				xmlString.append(START_TIME_CLOSE);
+				xmlString.append(THEATRE_NAME_OPEN);
+				xmlString.append(st.getTheatreName());
+				xmlString.append(THEATRE_NAME_CLOSE);
+				xmlString.append(VIP_AVAILABLE_OPEN);
+				xmlString.append(st.isVipAvailable());
+				xmlString.append(VIP_AVAILABLE_CLOSE);
+				xmlString.append(SHOWTIME_CLOSE);
+			}
+			xmlString.append(SHOWTIMES_CLOSE);
 			xmlString.append(MOVIE_CLOSE);
 		}
 

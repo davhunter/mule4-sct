@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.deloitte.sct.datamodel.Movie;
+import com.deloitte.sct.datamodel.ShowTime;
 import com.deloitte.sct.datamodel.TestRun;
 
 /**
@@ -34,6 +35,27 @@ public class DataGenerator {
 	private static final String MOVIE_NAME = "The Matrix";
 
 	/**
+	 * Hard-coded start times for showtimes
+	 */
+	private static final String FIRST_START_TIME = "13:15";
+	private static final String SECOND_START_TIME = "15:30";
+	private static final String THIRD_START_TIME = "18:45";
+
+	/**
+	 * Hard-coded names of theatres for showtimes
+	 */
+	private static final String FIRST_THEATRE_NAME = "Cineplex Cinemas Scotiabank Theatre";
+	private static final String SECOND_THEATRE_NAME = "Cineplex Cinemas Scotiabank Theatre";
+	private static final String THIRD_THEATRE_NAME = "Cineplex Cinemas Scotiabank Theatre";
+
+	/**
+	 * Hard-coded values for "VIP available" for showtimes
+	 */
+	private static final boolean FIRST_VIP_AVAILABLE = true;
+	private static final boolean SECOND_VIP_AVAILABLE = false;
+	private static final boolean THIRD_VIP_AVAILABLE = true;
+
+	/**
 	 * Returns a list of objects.
 	 * 
 	 * @param numRecords Number of objects to be created in the list
@@ -42,10 +64,25 @@ public class DataGenerator {
 	static public List<Movie> generateMovies(int numRecords) {
 		List<Movie> movies = new ArrayList<Movie>();
 		for (int i = 0; i < numRecords; i++) {
-			movies.add(new Movie(MOVIE_NAME, MOVIE_DURATION, MOVIE_RATING));
+			movies.add(new Movie(MOVIE_NAME, MOVIE_DURATION, MOVIE_RATING, generateShowtimes()));
 		}
 
 		return movies;
+	}
+
+	/**
+	 * Helper method for generating a few ShowTime objects
+	 * 
+	 * @return List of ShowTime objects
+	 */
+	static private List<ShowTime> generateShowtimes() {
+		List<ShowTime> showtimes = new ArrayList<ShowTime>();
+
+		showtimes.add(new ShowTime(FIRST_START_TIME, FIRST_THEATRE_NAME, FIRST_VIP_AVAILABLE));
+		showtimes.add(new ShowTime(SECOND_START_TIME, SECOND_THEATRE_NAME, SECOND_VIP_AVAILABLE));
+		showtimes.add(new ShowTime(THIRD_START_TIME, THIRD_THEATRE_NAME, THIRD_VIP_AVAILABLE));
+
+		return showtimes;
 	}
 
 	/**

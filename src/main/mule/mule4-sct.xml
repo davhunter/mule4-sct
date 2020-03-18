@@ -165,7 +165,12 @@ output application/xml
 movies: movie: payload map (() -> {
 		name: $.name,
 		duration: $.duration,
-		rating: $.rating
+		rating: $.rating,
+		showtimes: showtime: $.showtimes map ((stItem, stIndex) -> {
+			startTime: stItem.startTime,
+			theatreName: stItem.theatreName,
+			vipAvailable: stItem.vipAvailable
+		})
 })]]></ee:set-payload>
 					</ee:message>
 				</ee:transform>
@@ -173,6 +178,7 @@ movies: movie: payload map (() -> {
 import java!com::deloitte::sct::datadrivers::DataGenerator
 ---
 DataGenerator::getNanoTime()]" doc:name="Set End Time" doc:id="c3db5be1-e1e3-4805-9005-2ce146237f4a" variableName="endTime" />
+				<logger level="DEBUG" doc:name="Log Result" doc:id="05c73f00-7f6f-4f97-84b7-3869bc7703e6" message="#[payload]"/>
 				<ee:transform doc:name="Transform Message" doc:id="18d0085b-9736-430e-a222-8a8628817fb2" >
 					<ee:message >
 						<ee:set-payload ><![CDATA[%dw 2.0
@@ -195,7 +201,12 @@ output application/java
 movies: movie: payload map (() -> {
 		name: $.name,
 		duration: $.duration,
-		rating: $.rating
+		rating: $.rating,
+		showtimes: showtime: $.showtimes map ((stItem, stIndex) -> {
+			startTime: stItem.startTime,
+			theatreName: stItem.theatreName,
+			vipAvailable: stItem.vipAvailable
+		})
 })]]></ee:set-payload>
 					</ee:message>
 				</ee:transform>
@@ -215,6 +226,7 @@ payload]]></ee:set-payload>
 import java!com::deloitte::sct::datadrivers::DataGenerator
 ---
 DataGenerator::getNanoTime()]" doc:name="Set End Time" doc:id="240cf843-039a-467f-ae68-f7ba1815eb46" variableName="endTime" />
+				<logger level="DEBUG" doc:name="Log Result" doc:id="f1c44004-74b3-441c-9497-8dfd485c5d9f" message="#[payload]"/>
 				<ee:transform doc:name="Transform Message" doc:id="7842102a-3a86-4a11-904e-69f8603241f3" >
 					<ee:message >
 						<ee:set-payload ><![CDATA[%dw 2.0
@@ -238,6 +250,7 @@ output application/java
 	movies: payload
 }]]]></java:args>
 				</java:invoke-static>
+				<logger level="DEBUG" doc:name="Log Result" doc:id="00274f3d-f89c-49a2-8f65-8886e8ebd667" message="#[payload.xmlResult]"/>
 			</when>
 			<when expression='#[vars.testType == "StringBuffer"]'>
 				<java:invoke-static doc:name="String Buffer" 
@@ -249,6 +262,7 @@ output application/java
 	movies: payload
 }]]]></java:args>
 				</java:invoke-static>
+				<logger level="DEBUG" doc:name="Log Result" doc:id="a36aad9b-e13d-4149-9b42-94c34fc91bd9" message="#[payload.xmlResult]"/>
 			</when>
 			<when expression='#[vars.testType == "ConcatMethod"]'>
 				<java:invoke-static doc:name="Concat Method" 
@@ -260,6 +274,7 @@ output application/java
 	movies: payload
 }]]]></java:args>
 				</java:invoke-static>
+				<logger level="DEBUG" doc:name="Log Result" doc:id="3a59aff5-f8a2-4f62-8a8a-922b09c9299d" message="#[payload.xmlResult]"/>
 			</when>
 			<otherwise >
 				<java:invoke-static doc:name="Concatenation" 
@@ -271,6 +286,7 @@ output application/java
 	movies: payload
 }]]]></java:args>
 				</java:invoke-static>
+				<logger level="DEBUG" doc:name="Log Result" doc:id="3bdb3883-b853-46d5-93c6-49d330c9965d" message="#[payload.xmlResult]"/>
 			</otherwise>
 		</choice>
 		<ee:transform doc:name="Generate Output" doc:id="aa9a84be-fcc3-4c1a-bccc-c4f4cdeb66d8" >
